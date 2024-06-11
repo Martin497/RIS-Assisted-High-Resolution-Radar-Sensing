@@ -1,5 +1,5 @@
 # RIS-Assisted High-Resolution Radar Sensing
-This GitHub repository contains the scripts for...
+This GitHub repository contains the code library used to create the results of the paper `RIS-Assisted High-Resolution Radar Sensing` submitted to IEEE Transactions on Signal Processing, June 2024.
 
 Author: Martin Voigt Vejling
 
@@ -18,17 +18,27 @@ E-Mail: mvv@{math,es}.aau.dk
 - MainEstimation.py
 - TheoreticalAnalysis.py
 
-### Experimental settings
+### Configuration file
 - system_config.toml
 
-### Recreating figures
+### Simulation scripts
 - DetectionSimulationStudy
 - FisherSimulationStudy
--
+- MainSimulationStudy
+
+### Recreating figures
+- Figure 2 & 4: TheoreticalCoerenceStudy.py
+- Figure 3: PlotWorkingPrinciple.py
+- Figure 5: TheoreticalTildeCStudy.py
+- Figure 6 & 7: TheoreticalDetectionStudy.py
+- Figure 8: results/FisherStudyPlot.py
+- Figure 9a & 9b: results/DetectionMultiStudyPlot.py
+- Figure 9c: results/MainStudyPlot.py
 
 ### System visualization
 - PowerRISPosition.py
 - receiveSNR.py
+
 
 ## Software Setup
 
