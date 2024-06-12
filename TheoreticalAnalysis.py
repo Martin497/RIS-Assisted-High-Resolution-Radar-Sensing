@@ -24,86 +24,6 @@ class TheoreticalInsights(ChannelAnalysis):
         """
         super(TheoreticalInsights, self).__init__(config_file, **kwargs)
 
-    # def FIM_USU_partial(self, alphal, taul, thetal, W, f):
-    #     """
-    #     """
-    #     T = self.T2//2
-
-    #     g1n = self.gN(taul[0], thetal[0], W, f, self.NU[0], self.NU[1], self.N, T)
-    #     g2n = self.gN(taul[1], thetal[1], W, f, self.NU[0], self.NU[1], self.N, T)
-
-    #     # gNtau1 = self.dergNtau(taul[0], thetal[0], f)
-    #     # gNtau2 = self.dergNtau(taul[1], thetal[1], f)
-
-    #     gNthetaAz1 = self.dergNthetaAz(taul[0], thetal[0], f)
-    #     gNthetaAz2 = self.dergNthetaAz(taul[1], thetal[1], f)
-
-    #     # gNthetaEl1 = self.dergNthetaEl(taul[0], thetal[0], f)
-    #     # gNthetaEl2 = self.dergNthetaEl(taul[1], thetal[1], f)
-
-    #     # pdvVec1 = np.hstack((g1n, 1j*g1n, -1j*2*np.pi*self.delta_f*alphal[0]*gNtau1, alphal[0]*gNthetaAz1, alphal[0]*gNthetaEl1))
-    #     # pdvVec2 = np.hstack((g2n, 1j*g2n, -1j*2*np.pi*self.delta_f*alphal[1]*gNtau2, alphal[1]*gNthetaAz2, alphal[1]*gNthetaEl2))
-
-    #     pdvVec = np.stack((g1n, g2n, 1j*g1n, 1j*g2n, alphal[0]*gNthetaAz1, alphal[1]*gNthetaAz2))
-    #     FIM = 2*self.p_tx/self.p_noise * np.real(np.dot(pdvVec, pdvVec.conj().T))
-    #     return FIM
-
-    # def FIM_USU_partial(self, alphal, taul, thetal, W, f):
-    #     """
-    #     Given channel parameters and the precoder and combiner, compute the
-    #     Fisher information matrix for the USU signal.
-    #     """
-    #     L = len(alphal)
-    #     delta_f = self.delta_f*1e-09
-
-    #     # Prepare initial computations
-    #     dn_taul = self.DelayVec(taul)
-    #     aU_thetal = np.zeros((L, self.NU_prod), dtype=np.complex128)
-    #     AU_ll = np.zeros((L, self.NU_prod, self.NU_prod), dtype=np.complex128)
-    #     pdvAUaz = np.zeros((L, self.NU_prod, self.NU_prod), dtype=np.complex128)
-    #     pdvAUel = np.zeros((L, self.NU_prod, self.NU_prod), dtype=np.complex128)
-    #     for l in range(L):
-    #         aU_thetal[l] = self.ArrayVec_(self.AntPos_UE, thetal[l, 0], thetal[l, 1])
-    #         AU_ll[l] = np.outer(aU_thetal[l], aU_thetal[l])
-    #         pdvAUaz[l] = self.derArrayMat("azimuth", self.AntPos_UE, thetal[l, 0], thetal[l, 1])
-    #         pdvAUel[l] = self.derArrayMat("elevation", self.AntPos_UE, thetal[l, 0], thetal[l, 1])
-
-    #     pdvRealAlpha = dn_taul[None, :, :, None] \
-    #         * np.einsum("ij,tli->tlj", W.conj(), np.einsum("lij,tj->tli", AU_ll, f))[:, None, :, :]
-    #     pdvImagAlpha = 1j * pdvRealAlpha
-    #     pdvDelay = -1j*2*np.pi*self.n[None, :, None, None]*delta_f*alphal[None, None, :, None] \
-    #         * pdvRealAlpha
-    #     pdvThetaAz = alphal[None, None, :, None] * dn_taul[None, :, :, None] \
-    #         * np.einsum("ij,tli->tlj", W.conj(), np.einsum("lij,tj->tli", pdvAUaz, f))[:, None, :, :]
-    #     pdvThetaEl = alphal[None, None, :, None] * dn_taul[None, :, :, None] \
-    #         * np.einsum("ij,tli->tlj", W.conj(), np.einsum("lij,tj->tli", pdvAUel, f))[:, None, :, :]
-
-    #     pdvVec = np.concatenate((pdvThetaAz, pdvRealAlpha, pdvImagAlpha, pdvThetaEl, pdvDelay), axis=2)
-    #     FIM = 2*self.p_tx/self.p_noise * np.real(np.einsum("tnli,tnki->lk", pdvVec, pdvVec.conj()))
-    #     return FIM
-
-    # def ComputeFisherPartial(self, Phi, sU, rcs, hpars, verboseEst=False, bounds=False, run_fisher=False, run_detect=True, **kwargs):
-    #     """
-    #     """
-    #     self.verboseEst = verboseEst
-    #     self.bounds = bounds
-
-    #     Phi, ChPars, rcs, prior, _ = self.MainSetup(Phi, sU, rcs, hpars, **kwargs)
-
-    #     # Simulate signal model
-    #     _, _, WN, WR, omega, f = self.main_signal_model(Phi, sU, rcs, prior)
-
-    #     if self.verboseEst is True:
-    #         if Phi.shape[0] > 0:
-    #             print("Channel coefficients SB: \n", self.alphal)
-    #             print("Channel coefficients DB: \n", self.alphal_bar)
-
-    #     FIM = self.FIM_USU_partial(self.alphal, ChPars[:, 0], ChPars[:, 1:3], WN, f)
-    #     information_loss = np.dot(FIM[0, 1:], np.linalg.solve(FIM[1:, 1:], FIM[1:, 0]))
-    #     symmetric_information_loss = 1/2 * (information_loss + information_loss.T)
-    #     EFIMthetaAz1 = FIM[0, 0] - symmetric_information_loss
-    #     return EFIMthetaAz1
-
     def dergNtau(self, tau, theta, f):
         """
         """
@@ -201,11 +121,6 @@ class TheoreticalInsights(ChannelAnalysis):
         aU2 = self.ArrayVec_(self.AntPos_UE, thetal[1, 0], thetal[1, 1])
         deraU1 = self.derArrayVec("azimuth", self.AntPos_UE, thetal[0, 0], thetal[0, 1])
         deraU2 = self.derArrayVec("azimuth", self.AntPos_UE, thetal[1, 0], thetal[1, 1])
-
-        # aU1aU2 = np.dot(aU1.conj(), aU2)
-        # aU1deraU2 = np.dot(aU1.conj(), deraU2)
-        # aU2deraU1 = np.dot(aU2.conj(), deraU1)
-        # deraU1deraU2 = np.dot(deraU1.conj(), deraU2)
 
         aR0 = self.ArrayVec_(self.AntPos_RIS, phi0[0], phi0[1])
         aR1 = self.ArrayVec_(self.AntPos_RIS, phil[0, 0], phil[0, 1])
@@ -337,13 +252,11 @@ class TheoreticalInsights(ChannelAnalysis):
         g1n = self.gN(tau[0], theta[0], WN, f, self.NU[0], self.NU[1], self.N, T)
         g2n = self.gN(tau[1], theta[1], WN, f, self.NU[0], self.NU[1], self.N, T)
         coherenceNormalizedN = np.abs(np.dot(g1n.conj(), g2n))**2/(np.linalg.norm(g1n)**2 * np.linalg.norm(g2n)**2)
-        # varN = (np.linalg.norm(g2n)**2 - np.abs(np.dot(g1n.conj(), g2n))**2/np.linalg.norm(g1n)**2)/(2*np.linalg.norm(g2n)**4)
 
         g1r = self.gR(tau_bar[0], phi[0], theta[0], phi0, theta0, WR, omega, f, self.NU[0], self.NU[1], self.N, T)
         g2r = self.gR(tau_bar[1], phi[1], theta[1], phi0, theta0, WR, omega, f, self.NU[0], self.NU[1], self.N, T)
 
         coherenceNormalizedR = np.abs(np.dot(g1r.conj(), g2r))**2/(np.linalg.norm(g1r)**2 * np.linalg.norm(g2r)**2)
-        # varR = (np.linalg.norm(g2r)**2 - np.abs(np.dot(g1r.conj(), g2r))**2/np.linalg.norm(g1r)**2)/(2*np.linalg.norm(g2r)**4)
         return coherenceNormalizedN, coherenceNormalizedR
 
     def ComputeNormalizedCoherence(self, Phi, sU, rcs, hpars, verboseEst=False, bounds=False, run_fisher=False, run_detect=True, **kwargs):
@@ -356,8 +269,6 @@ class TheoreticalInsights(ChannelAnalysis):
 
         # Simulate signal model
         _, _, WN, WR, omega, f = self.main_signal_model(Phi, sU, rcs, prior)
-        # varphi = np.load(f"optimized_RIS_phase_profiles/varphi_T{self.T2//2}_NR{self.NR[0]}.npy")
-        # omega = np.exp(1j*varphi)
         f = f[0, :]
 
         if self.verboseEst is True:
@@ -524,11 +435,6 @@ class TheoreticalInsights(ChannelAnalysis):
         sigma = np.sqrt(self.p_noise/2)
 
         ### Compute bound for non-RIS signal ###
-        # delaysN = np.linspace(prior["tau_bounds"][0], prior["tau_bounds"][1], hpars_grid["K_delayN"])
-        # az_anglesN = np.linspace(prior["theta_bounds"][0], prior["theta_bounds"][1], hpars_grid["K_azN"])
-        # el_anglesN = np.linspace(prior["theta_bounds"][2], prior["theta_bounds"][3], hpars_grid["K_elN"])
-        # MN = hpars_grid["K_delayN"]*hpars_grid["K_azN"]*hpars_grid["K_elN"]
-
         MN = L
 
         BetaN = np.copy(self.alphal) # size=(L,)
@@ -544,18 +450,12 @@ class TheoreticalInsights(ChannelAnalysis):
         rhoN = 1 - max_mutual_coherence_nonRIS*(L-1)
         DRN = x_maxN**2/x_minN**2
         SNRN = self.p_tx * x_minN**2/sigma**2
-        # print(MN, Ny, rhoN, Erel, SNRN, max_mutual_coherence_nonRIS, L, DRN)
 
         P1N = MN/Ny * np.sqrt(2/(np.pi*rhoN**2*Erel*Ny*SNRN)) * np.exp(-Erel*rhoN**2*Ny*SNRN/2)
         P2N = 4*MN * np.exp(-1/(16*L**2*max_mutual_coherence_nonRIS**2*DRN/MN + 8*max_mutual_coherence_nonRIS*np.sqrt(DRN)/(3*np.sqrt(2))))
         boundN = max(0, 1 - P1N) * max(0, 1 - P2N)
 
         ### Compute bound for RIS signal ###
-        # delaysR = np.linspace(prior["tau_bar_bounds"][0], prior["tau_bar_bounds"][1], hpars_grid["K_delayR"])
-        # az_anglesR = np.linspace(prior["phi_bounds"][0], prior["phi_bounds"][1], hpars_grid["K_azR"])
-        # el_anglesR = np.linspace(prior["phi_bounds"][2], prior["phi_bounds"][3], hpars_grid["K_elR"])
-        # MR = hpars_grid["K_delayR"]*hpars_grid["K_azR"]*hpars_grid["K_elR"]
-
         MR = L
 
         BetaR = np.copy(self.alphal_bar) # size=(L,)
@@ -569,7 +469,6 @@ class TheoreticalInsights(ChannelAnalysis):
         SNRR = self.p_tx * x_minR**2/sigma**2
         Ny = (T*self.N*self.NU_prod*self.NR_prod).astype(np.int64)*self.NR_prod
 
-        # print(MR, Ny, rhoR, Erel, SNRR, max_mutual_coherence_RIS, L, DRR)
         P1R = MR/Ny * np.sqrt(2/(np.pi*rhoR**2*Erel*Ny*SNRR)) * np.exp(-Erel*rhoR**2*Ny*SNRR/2)
         P2R = 4*MR * np.exp(-1/(16*L**2*max_mutual_coherence_RIS**2*DRR/MR + 8*max_mutual_coherence_RIS*np.sqrt(DRR)/(3*np.sqrt(2))))
         boundR = max(0, (1 - P1R) * (1 - P2R))

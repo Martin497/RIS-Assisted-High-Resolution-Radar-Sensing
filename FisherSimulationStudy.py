@@ -5,8 +5,7 @@ Created on Tue Mar 19 09:29:28 2024
 @author: Martin Voigt Vejling
 Email: mvv@es.aau.dk
 
-Track changes:
-    v1.0 - 
+Simulate data for figure 8.
 """
 
 
@@ -45,18 +44,18 @@ def main():
     # =============================================================================
     np.random.seed(toml_settings["seed"])
 
-    savename = "004"
+    savename = "002"
     folder = f"results/Fisher/{savename}"
 
-    pos_list = [0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.11, 0.12, 0.13, 0.14, 0.15]
-    pos_iters = len(pos_list)
+    try:
+        os.mkdir(folder)
+    except OSError as error:
+        print(error)
+
+    pos_list = [0.1]
     rcs_iters = 1
     fading_sims = 1000
 
-    # bounds = {"tau_bounds": np.array([1.12e-07, 1.28e-07]),
-    #           "theta_bounds": np.array([0.57, 0.87, 0.65, 0.95]),
-    #           "tau_bar_bounds": np.array([1.13e-07, 1.32e-07]),
-    #           "phi_bounds": np.array([0.10, 0.78, 0.55, 1.16])}
     bounds = {"tau_bounds": np.array([1.12e-07, 1.28e-07]),
               "theta_bounds": np.array([0.55, 0.85, 0.65, 0.95])}
     toml_estimation["simulate_prior"] = False
@@ -72,21 +71,13 @@ def main():
     res = dict()
     for pos_idx, Delta in enumerate(pos_list):
         res[f"{pos_idx}"] = dict()
-        if pos_iters > 1:
-            Phi_taus = np.array([60, 60, 60])
-            az0 = 0.7
-            el0 = 0.8
-            Phi_rs = Phi_taus * 1e-09 * toml_settings["c"]
-            Phi_azs = np.array([az0, az0+Delta, az0-Delta])
-            Phi_els = np.array([el0, el0-Delta, el0+Delta])
-            Phi = Phi_rs[:, None] * np.stack((np.cos(Phi_azs)*np.sin(Phi_els), np.sin(Phi_azs)*np.sin(Phi_els), np.cos(Phi_els)), axis=-1)
-        else:
-            Phi_taus = np.array(toml_positions["Phi_taus"])
-            Phi_rs = Phi_taus * 1e-09 * toml_settings["c"]
-            Phi_azs = np.array(toml_positions["Phi_azs"])
-            Phi_els = np.array(toml_positions["Phi_els"])
-            Phi = Phi_rs[:, None] * np.stack((np.cos(Phi_azs)*np.sin(Phi_els), np.sin(Phi_azs)*np.sin(Phi_els), np.cos(Phi_els)), axis=-1)
-
+        Phi_taus = np.array([60, 60, 60])
+        az0 = 0.7
+        el0 = 0.8
+        Phi_rs = Phi_taus * 1e-09 * toml_settings["c"]
+        Phi_azs = np.array([az0, az0+Delta, az0-Delta])
+        Phi_els = np.array([el0, el0-Delta, el0+Delta])
+        Phi = Phi_rs[:, None] * np.stack((np.cos(Phi_azs)*np.sin(Phi_els), np.sin(Phi_azs)*np.sin(Phi_els), np.cos(Phi_els)), axis=-1)
         for idx1 in range(rcs_iters):
             if idx1 > 0:
                 rcs_setting[1:] *= np.sqrt(2)

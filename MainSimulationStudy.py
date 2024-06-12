@@ -69,20 +69,25 @@ def main():
     mod = ChannelEstimation(None, False, False, **toml_settings)
     sU = np.array(toml_settings["sU"])
 
-    bounds = {"tau_bounds": np.array([1.12e-07, 1.28e-07]),
-              "theta_bounds": np.array([0.55, 0.85, 0.65, 0.95])}
-    toml_estimation["simulate_prior"] = False
+    # bounds = {"tau_bounds": np.array([1.12e-07, 1.28e-07]),
+    #           "theta_bounds": np.array([0.55, 0.85, 0.65, 0.95])}
+    # toml_estimation["simulate_prior"] = False
 
     # =============================================================================
     # Run simulation study
     # =============================================================================
-    savename = "PosOMP06"
+    savename = "002"
     folder = f"results/Main/{savename}"
-    use_mp = False
 
+    try:
+        os.mkdir(folder)
+    except OSError as error:
+        print(error)
+
+    use_mp = False
     rcs_iters = 1
-    fading_sims = 15
-    noise_sims = 1
+    fading_sims = 100
+    noise_sims = 5
 
     with open(f"{folder}/{savename}.toml", "w") as toml_file:
         toml.dump(toml_in, toml_file)
@@ -95,7 +100,6 @@ def main():
     with open(f"{folder}/AOAspacings_data.txt", "w") as file:
         for pos in pos_list:
             file.write(f"{pos},")
-    pos_iters = len(pos_list)
 
     # =============================================================================
     # Run
@@ -104,27 +108,14 @@ def main():
     res = dict()
     for pos_idx, Delta in enumerate(pos_list):
         res[f"{pos_idx}"] = dict()
-        if pos_iters > 1:
-            Phi_taus = np.array([60, 60, 60])
-            az0 = 0.7
-            el0 = 0.8
-            Phi_rs = Phi_taus * 1e-09 * toml_settings["c"]
-            Phi_azs = np.array([az0, az0+Delta, az0-Delta])
-            Phi_els = np.array([el0, el0-Delta, el0+Delta])
-            Phi = Phi_rs[:, None] * np.stack((np.cos(Phi_azs)*np.sin(Phi_els), np.sin(Phi_azs)*np.sin(Phi_els), np.cos(Phi_els)), axis=-1)
-            # Phi_taus = np.array([60, 60])
-            # az0 = 0.7
-            # el0 = 0.8
-            # Phi_rs = Phi_taus * 1e-09 * toml_settings["c"]
-            # Phi_azs = np.array([az0, az0+Delta])
-            # Phi_els = np.array([el0, el0-Delta])
-            # Phi = Phi_rs[:, None] * np.stack((np.cos(Phi_azs)*np.sin(Phi_els), np.sin(Phi_azs)*np.sin(Phi_els), np.cos(Phi_els)), axis=-1)
-        else:
-            Phi_taus = np.array(toml_positions["Phi_taus"])
-            Phi_rs = Phi_taus * 1e-09 * toml_settings["c"]
-            Phi_azs = np.array(toml_positions["Phi_azs"])
-            Phi_els = np.array(toml_positions["Phi_els"])
-            Phi = Phi_rs[:, None] * np.stack((np.cos(Phi_azs)*np.sin(Phi_els), np.sin(Phi_azs)*np.sin(Phi_els), np.cos(Phi_els)), axis=-1)
+        Phi_taus = np.array([60, 60, 60])
+        az0 = 0.7
+        el0 = 0.8
+        Phi_rs = Phi_taus * 1e-09 * toml_settings["c"]
+        Phi_azs = np.array([az0, az0+Delta, az0-Delta])
+        Phi_els = np.array([el0, el0-Delta, el0+Delta])
+        Phi = Phi_rs[:, None] * np.stack((np.cos(Phi_azs)*np.sin(Phi_els), np.sin(Phi_azs)*np.sin(Phi_els), np.cos(Phi_els)), axis=-1)
+
         L = Phi.shape[0]
 
         for idx1 in range(rcs_iters):
@@ -134,7 +125,8 @@ def main():
             for idx2 in range(fading_sims):
                 print(pos_idx, idx1, idx2)
                 _, ChPars, rcs_iter, prior = mod.InitializeSetup(Phi, sU, rcs_setting, toml_estimation) # Simulate radar cross section
-                outputDetect, outputFisher = mod.RunChAnalysis(Phi, sU, rcs_iter, toml_estimation, ChPars=ChPars, prior=prior, run_fisher=True, bounds=bounds) # Compute theoretical detection probability
+                # outputDetect, outputFisher = mod.RunChAnalysis(Phi, sU, rcs_iter, toml_estimation, ChPars=ChPars, prior=prior, run_fisher=True, bounds=bounds) # Compute theoretical detection probability
+                outputDetect, outputFisher = mod.RunChAnalysis(Phi, sU, rcs_iter, toml_estimation, ChPars=ChPars, prior=prior, run_fisher=True) # Compute theoretical detection probability
                 res[f"{pos_idx}"][f"{idx1}"][f"{idx2}"] = {**outputDetect, **outputFisher, **{"rcs": rcs_iter}}
 
                 for idx3 in range(1, L+1):
@@ -153,7 +145,8 @@ def main():
                     elif use_mp is False:
                         for idx4 in range(noise_sims):
                             print(pos_idx, idx1, idx2, idx3, idx4)
-                            outputSens = mod.HiResSens(Phi_small, sU, rcs_small, toml_estimation, ChPars=ChPars_small, prior=prior, bounds=bounds)
+                            # outputSens = mod.HiResSens(Phi_small, sU, rcs_small, toml_estimation, ChPars=ChPars_small, prior=prior, bounds=bounds)
+                            outputSens = mod.HiResSens(Phi_small, sU, rcs_small, toml_estimation, ChPars=ChPars_small, prior=prior)
                             res[f"{pos_idx}"][f"{idx1}"][f"{idx2}"][f"{idx3}"][f"{idx4}"] = outputSens
                             # print(f"True number: {idx3}, Est number: {outputSpectral['Marr'][50]}, {outputSpectral['MarrN'][50]}, {outputSpectral['MarrR'][50]}")
 

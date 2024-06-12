@@ -4,7 +4,6 @@ __pycache__/
 *$py.class
 
 # Repository specifics
-results/*
 
 *.npy
 *.Rproj.user

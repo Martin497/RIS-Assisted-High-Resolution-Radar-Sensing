@@ -20,7 +20,6 @@ Track changes:
 
 import numpy as np
 import matplotlib.pyplot as plt
-# import tikzplotlib
 from scipy.ndimage import maximum_filter
 
 
@@ -120,7 +119,6 @@ def PseudoSpectrum_plot(delays, az_angles, el_angles, P, savename, title="MUSIC"
         plt.xlabel('Azimuth [rad]')
         plt.ylabel('Delay [ns]')
         plt.title(title)
-        # tikzplotlib.save(savename+"_az_delay.tex")
         plt.savefig(savename+"_az_delay.png", dpi=500, bbox_inches="tight")
         plt.show()
 
@@ -131,12 +129,10 @@ def PseudoSpectrum_plot(delays, az_angles, el_angles, P, savename, title="MUSIC"
         plt.xlabel('Elevation [rad]')
         plt.ylabel('Delay [ns]')
         plt.title(title)
-        # tikzplotlib.save(savename+"_el_delay.tex")
         plt.savefig(savename+"_el_delay.png", dpi=500, bbox_inches="tight")
         plt.show()
 
     el_az_P = np.abs(np.sum(P, axis=0))
-    # el_az_P = el_az_P/np.max(el_az_P)
     el_az_P_dB = 20*np.log10(el_az_P)
     spec = plt.pcolormesh(el_angles, az_angles, el_az_P_dB, cmap='viridis', shading='auto')
     cb = plt.colorbar(spec)
@@ -144,26 +140,8 @@ def PseudoSpectrum_plot(delays, az_angles, el_angles, P, savename, title="MUSIC"
     plt.xlabel('Elevation [rad]')
     plt.ylabel('Azimuth [rad]')
     plt.title(title)
-    # plt.plot([0.8, 0.7], [0.7, 0.8], "kx")
-    # plt.plot([0.86252, 0.66308], [0.44935, 0.57845], "kx")
-    # tikzplotlib.save("results/spectrum_plots/nonRIS_el_az.tex")
     plt.savefig(savename+"_el_az.png", dpi=500, bbox_inches="tight")
     plt.show()
-
-    thinres = 4
-    if len(delays) != 1:
-        with open(savename+"_az_delay.txt", "w") as file:
-            for idx1, az in enumerate(az_angles[::thinres]):
-                for idx2, delay in enumerate(delays[::thinres]*1e09):
-                    file.write(f"{az}  {delay}  {az_delay_P_dB[idx2*thinres, idx1*thinres]}\n")
-        with open(savename+"_el_delay.txt", "w") as file:
-            for idx1, el in enumerate(el_angles[::thinres]):
-                for idx2, delay in enumerate(delays[::thinres]*1e09):
-                    file.write(f"{el}  {delay}  {el_delay_P_dB[idx2*thinres, idx1*thinres]}\n")
-    with open(savename+"_el_az.txt", "w") as file:
-        for idx1, el in enumerate(el_angles[::thinres]):
-            for idx2, az in enumerate(az_angles[::thinres]):
-                file.write(f"{el}  {az}  {el_az_P_dB[idx2*thinres, idx1*thinres]}\n")
 
 def find_peaks(P, ChPars, stds=2, kernel=(3, 3, 3), number_of_peaks=None, return_local_maxima=False):
     """
@@ -194,9 +172,6 @@ def find_peaks(P, ChPars, stds=2, kernel=(3, 3, 3), number_of_peaks=None, return
     if return_local_maxima is True:
         return P[mask_loc], ChPars[mask_loc], np.mean(P), np.std(P)
     if number_of_peaks is None:
-        # muP, stdP = np.mean(P), np.std(P)
-        # th = muP + stdP*stds
-        # th = stds*1e-07
         try:
             th = np.max(P[mask_loc])*stds
             mask_th = P > th

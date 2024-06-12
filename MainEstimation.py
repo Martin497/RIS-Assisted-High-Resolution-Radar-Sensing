@@ -37,14 +37,6 @@ import toml
 
 from scipy.optimize import minimize
 from scipy.stats import chi2
-
-import line_profiler
-profile = line_profiler.LineProfiler()
-
-import sys
-import os
-if os.path.abspath("..")+"/Modules" not in sys.path:
-    sys.path.append(os.path.abspath("..")+"/Modules")
     
 from Beamforming import forward_smoothing, smoothing, find_peaks
 from CompressiveSensing import orthogonal_matching_pursuit
@@ -119,16 +111,9 @@ class ChannelEstimation(ChannelAnalysis):
         Initialize class from inheritance.
         """
         super(ChannelEstimation, self).__init__(config_file, **kwargs)
-        self.profile = profile
         self.verboseEst = verbose
         self.bounds = bounds
         self.chPosEst = PosEst(None, **kwargs)
-
-    def run_profile(self):
-        """
-        Run line profiler.
-        """
-        self.profile.print_stats()
 
     def EstimateAlphaBar(self, Y, ChParsEst, W, omega, f, prior):
         """
@@ -245,7 +230,6 @@ class ChannelEstimation(ChannelAnalysis):
         T, N, NUx, NUy = Y.shape
 
         if algR == "beamforming":
-        # order_test == "eigenvalue_test":
             eigs = np.flip(np.linalg.eigh(Covariance)[0])
             S = (NUx-1 + 1) * (NUy-1 + 1) * (N-Lsf + 1)
             dim = len(eigs)
@@ -260,7 +244,6 @@ class ChannelEstimation(ChannelAnalysis):
                     = self.ChannelEstimationCondM_RIS(Y, Covariance, sU, prior, W, omega, f, Lsf,
                                                       beamformer, optimization, hpars_grid, M, savename)
         elif algR == "OMP":
-        # elif order_test == "OMP": # orthogonal matching pursuit
             if Lsf == 1:
                 delays = np.array([(prior["tau_bar_bounds"][0]+prior["tau_bar_bounds"][1])/2])
             else:
@@ -270,18 +253,13 @@ class ChannelEstimation(ChannelAnalysis):
             C1, C2, C3 = np.meshgrid(delays, az_angles, el_angles, indexing="ij")
             ChPars = np.stack((C1*1e09, C2, C3), axis=-1)
 
-            try: # OBS
-                gSearch = np.load("gRSearch.npy")
-            except:
-                gSearch = np.sqrt(self.p_tx)*self.gRTensor(delays, az_angles, el_angles, prior["thetal"], prior["phi0"], prior["theta0"], W, omega, f, NUx, NUy, N, T)
-                np.save("gRSearch.npy", gSearch)
-
+            gSearch = np.sqrt(self.p_tx)*self.gRTensor(delays, az_angles, el_angles, prior["thetal"], prior["phi0"], prior["theta0"], W, omega, f, NUx, NUy, N, T)
             A = gSearch.reshape((-1, gSearch.shape[-1])).T
             y = Y.flatten()
 
             x_hat, Lambda = orthogonal_matching_pursuit(A, y,
-                                                        stopping_criteria={"eps1": residual_threshold, "eps2": 1e-06, "eps3": 1e-04, "eps4": 2e-01, "sparsity":sparsity},
-                                                        plotting={"delays": delays, "az_angles": az_angles, "el_angles": el_angles})
+                                                        stopping_criteria={"eps1": residual_threshold, "sparsity":sparsity},
+                                                        plotting={"plot": self.verboseEst, "delays": delays, "az_angles": az_angles, "el_angles": el_angles})
             AlphaBarEst = x_hat[Lambda]
             ChParsEst = ChPars.reshape((-1, 3))[Lambda]
             L_hat = len(Lambda)
@@ -289,18 +267,17 @@ class ChannelEstimation(ChannelAnalysis):
             p_value = None
 
             # Find precision matrix as the equivalent Fisher information
-            # FIM_USRU = self.FIM_USRU_core(AlphaBarEst, ChParsEst[:, 0], np.repeat(np.expand_dims(prior["thetal"], axis=0), L_hat, axis=0),
-            #                               ChParsEst[:, 1:], prior["theta0"], prior["phi0"], W, omega, np.repeat(np.expand_dims(f, axis=0), self.T2//2, axis=0))
-            # EFIM_USRU = self.EFIM(FIM_USRU, ChParsEst.shape[0], type_="RIS")
-            # reEFIM_USRU = self.rearrange_FIM(EFIM_USRU, type_="RIS")
+            FIM_USRU = self.FIM_USRU_core(AlphaBarEst, ChParsEst[:, 0], np.repeat(np.expand_dims(prior["thetal"], axis=0), L_hat, axis=0),
+                                          ChParsEst[:, 1:], prior["theta0"], prior["phi0"], W, omega, np.repeat(np.expand_dims(f, axis=0), self.T2//2, axis=0))
+            EFIM_USRU = self.EFIM(FIM_USRU, ChParsEst.shape[0], type_="RIS")
+            reEFIM_USRU = self.rearrange_FIM(EFIM_USRU, type_="RIS")
 
             PosEst0 = np.zeros((L_hat, 3))
             PosEst = np.zeros((L_hat, 3))
             if L_hat > 0:
                 for l in range(L_hat):
                     PosEst0[l, :] = prior["center"]
-                    PosEst[l, :] = self.chPosEst.RISPositionEstimation(sU, self.sR, ChParsEst[l], PosEst0[l])
-                    #, reEFIM_USRU[l*3:(l+1)*3, l*3:(l+1)*3])
+                    PosEst[l, :] = self.chPosEst.RISPositionEstimation(sU, self.sR, ChParsEst[l], PosEst0[l], reEFIM_USRU[l*3:(l+1)*3, l*3:(l+1)*3])
 
             LL = self.loglikelihoodR(Covariance, ChParsEst, AlphaBarEst, sU, np.repeat(np.expand_dims(prior["thetal"], axis=0), L_hat, axis=0), prior["phi0"], prior["theta0"], W, omega, f, Lsf)
         else:
@@ -806,11 +783,7 @@ class ChannelEstimation(ChannelAnalysis):
             az_angles = np.linspace(prior["phi_bounds"][0], prior["phi_bounds"][1], hpars_grid["K_azR"])
             el_angles = np.linspace(prior["phi_bounds"][2], prior["phi_bounds"][3], hpars_grid["K_elR"])
 
-            try:
-                gRSearch = np.load("gRSearchDet.npy")
-            except:
-                gRSearch = np.sqrt(self.p_tx)*self.gRTensor(delays, az_angles, el_angles, prior["thetal"], prior["phi0"], prior["theta0"], WR, omega, f, NUx, NUy, N, T)
-                np.save("gRSearchDet.npy", gRSearch)
+            gRSearch = np.sqrt(self.p_tx)*self.gRTensor(delays, az_angles, el_angles, prior["thetal"], prior["phi0"], prior["theta0"], WR, omega, f, NUx, NUy, N, T)
             AR = gRSearch.reshape((-1, gRSearch.shape[-1])).T
             yR = YR.flatten()
 
@@ -823,11 +796,7 @@ class ChannelEstimation(ChannelAnalysis):
             az_angles = np.linspace(prior["theta_bounds"][0], prior["theta_bounds"][1], hpars_grid["K_azN"])
             el_angles = np.linspace(prior["theta_bounds"][2], prior["theta_bounds"][3], hpars_grid["K_elN"])
 
-            try:
-                gNSearch = np.load("gNSearchDet.npy")
-            except:
-                gNSearch = np.sqrt(self.p_tx)*self.gNTensor(delays, az_angles, el_angles, WN, f, NUx, NUy, N, T)
-                np.save("gNSearchDet.npy", gNSearch)
+            gNSearch = np.sqrt(self.p_tx)*self.gNTensor(delays, az_angles, el_angles, WN, f, NUx, NUy, N, T)
             AN = gNSearch.reshape((-1, gNSearch.shape[-1])).T
             yN = YN.flatten()
 
@@ -988,8 +957,6 @@ def main():
     res = mod.HiResSens(Phi, sU, rcs, toml_estimation, run_fisher=False, run_detection=False, bounds=bounds)
     with open("results/temp.pickle", "wb") as file:
         pickle.dump(res, file, pickle.HIGHEST_PROTOCOL)
-
-    # mod.run_profile()
 
 if __name__ == "__main__":
     main()

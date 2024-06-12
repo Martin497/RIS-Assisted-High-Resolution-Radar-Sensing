@@ -1,0 +1,66 @@
+title = "Configuration file v1.0 for: RIS-enabled High Resolution Radar"
+
+[owner]
+name = "Martin Voigt Vejling"
+mail = "martin.vejling@gmail.com"
+mail_es = "mvv@es.aau.dk"
+mail_math = "mvv@math.aau.dk"
+
+["track changes"]
+Python = "RIS-enabled High Resolution Radar v.1.0 - 20.09.2023:\n- Update with user specifications v.1.1 - 19.11.2023\n- Update to updated signal model v.1.2 - 04.12.2023\n- Update to estimation methods v.1.3 - 08.03.2024\n- Include OMP options v.1.4 - 10.06.2024\n"
+
+[settings]
+fc = 15000000000.0
+p_tot_tx_dbm = 68
+p_noise_hz_dbm = -166
+sR = [ 3.0, 5.0, 6.0, 0.0, 0.0, 0.0,]
+nR = [ 0, 0, 1,]
+sU = [ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,]
+NU = [ 2, 2,]
+NR = [ 35, 35,]
+delta_f = 120000.0
+N = 75
+c = 299792458
+T1 = 50
+T2 = 50
+fading = "random_phase"
+rcs_model = "rayleigh_mean"
+seed = 17
+
+[positions]
+Phi_taus = [ 60.0, 60.0, 60.0,]
+Phi_azs = [ 0.7, 0.8, 0.6,]
+Phi_els = [ 0.8, 0.7, 0.9,]
+Phi_rcs = [ 50.0, 5.0, 0.5,]
+
+[estimation]
+method = "joint"
+order_test = "OMP"
+algPrior = "OMP"
+algN = "OMP"
+algR = "OMP"
+beamformer = "MUSIC"
+optimization = "grid"
+simulate_prior = false
+cutoff_threshold = -0.25
+res_scale = 15
+confidence_level = 1e-5
+sparsity = 4
+residual_threshold = 3.5e-5
+simPhi = "rcs"
+intensity = 3
+interaction_radius = 1.5e-7
+LsxN = 2
+LsyN = 2
+LsfN = 45
+LsfR = 2
+K_delayN = 30
+K_azN = 45
+K_elN = 45
+stdsN = 3.0
+kernelN = [ 5, 5, 5,]
+K_delayR = 36
+K_azR = 36
+K_elR = 36
+stdsR = 0.1
+kernelR = [ 1, 8, 8,]

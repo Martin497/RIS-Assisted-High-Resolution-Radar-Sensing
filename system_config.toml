@@ -25,7 +25,7 @@ T1 = 50                                 # int - Number of channel uses in the pr
 T2 = 50                                 # int - Number of channel uses for high-resolution sensing
 fading = "random_phase"                 # str - The type of fading, options: "random_phase", "rayleigh", "rayleigh_mean"
 rcs_model = "rayleigh_mean"             # str - The type of radar cross section simulation, options: "rayleigh", "rayleigh_mean"
-seed = 17
+seed = 18
 
 [positions]
 Phi_taus = [ 60.0, 60.0, 60.0]
@@ -36,14 +36,14 @@ Phi_rcs = [ 50.0, 5.0, 0.5]
 [estimation]
 method = "joint"                        # str - The method, options: "joint"
 order_test = "OMP"                      # str - The method of estimation, options: "joint_eigenvalue_test", "eigenvalue_test", "OMP", "generalized_likelihood_ratio_test"
-algPrior = "beamforming"                # str - The method of estimation, options: "beamforming", "OMP"
+algPrior = "OMP"                # str - The method of estimation, options: "beamforming", "OMP"
 algN = "OMP"                    # str - The method of estimation, options: "beamforming", "OMP"
 algR = "OMP"                            # str - The method of estimation, options: "beamforming", "OMP"
 beamformer = "MUSIC"                    # str - The pseudo-spectrum algorithm, options: "MUSIC", "CAPON", "BARTLETT"
 optimization = "grid"                   # str - The optimization over the pseudo-spectrum, options: "grid", "optimize"
 simulate_prior = true                   # str - If True run prior sensing step, else used specified prior by bounds input
-cutoff_threshold = -100                 # float - The ref parameter used in the prior sensing step to find bounds of resolution region
-res_scale = 25                          # float - Setting the resolution scale used for pseudo-spectrum grid in the prior step
+cutoff_threshold = -0.25                 # float - The ref parameter used in the prior sensing step to find bounds of resolution region
+res_scale = 15                          # float - Setting the resolution scale used for pseudo-spectrum grid in the prior step
 confidence_level = 0.00001              # float - The confidence level used for estimating the number of targets with the spectral likelihood ratio test statistic
 sparsity = 4                            # int - The maximum number of targets when using OMP
 residual_thresholdN = 0.00003           # float - The residual norm threshold used to stop the OMP algorithm

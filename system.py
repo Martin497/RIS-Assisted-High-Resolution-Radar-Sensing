@@ -22,14 +22,7 @@ Track changes:
 
 import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib.colors import LogNorm
 import toml
-
-import sys
-import os
-if os.path.abspath("..")+"/Modules" not in sys.path:
-    sys.path.append(os.path.abspath("..")+"/Modules")
-from utilities import make_3D_grid
 
 
 class channel(object):
@@ -157,112 +150,6 @@ class channel(object):
         """
         """
 
-    # def step1_signal_model(self, Phi, sU, include_interference, theta0=None, T=None):
-    #     """
-    #     Simulate from the signal model for the first step of the protocol.
-
-    #     Inputs
-    #     ------
-    #         Phi : ndarray, size=(L, 3)
-    #         sU : ndarray, size=(6,)
-    #         include_interference : bool
-    #         theta0 : ndarray, size=(2,)
-    #             Direction for precoding focus. If None, use random precoding
-    #             sampled from a DFT matrix.
-    #         T : int
-    #             The number of OFDM symbols.
-    #     """
-    #     if T is None:
-    #         T = self.T1//2
-
-    #     omega = self.RIS_random_codebook(T=T) # size=(T1/2, NR)
-    #     f = self.construct_precoder(theta0=theta0, T=T) # size=(T1/2, NU)
-
-    #     if self.verbose is True:
-    #         print(self.ChParams(Phi, sU))
-    #         self.plot_precoder(f)
-    #         self.plot_RIS(omega, self.RIS_angles(Phi, sU[:3])[0])
-
-    #     H_RIS, H_nonRIS = self.ChMat(Phi, sU, omega, include_interference=True) # size=(T1/2, N, NU, NU)
-    #     y_nonRIS = self.simulate_received_signal(H_nonRIS, f, np.sqrt(self.p_noise/2)) # size=(T1/2, N, NU)
-    #     y_RIS = self.simulate_received_signal(H_RIS, f, np.sqrt(self.p_noise/2)) # size=(T1/2, N, NU)
-    #     return y_nonRIS, y_RIS
-
-    # def step2_signal_model_oracle(self, Phi, sU, include_interference):
-    #     """
-    #     Simulate from the signal model for the second step of the protocol
-    #     assuming known RIS and SP cluster position.
-
-    #     Inputs
-    #     ------
-    #         Phi : ndarray, size=(L, 3)
-    #         sU : ndarray, size=(6,)
-    #         include_interference : bool
-    #     """
-    #     # Oracle angles
-    #     theta0, thetal = self.nonRIS_angles(Phi, sU)
-    #     phi0, phil = self.RIS_angles(Phi, sU[:3])
-
-    #     # Compute RIS phase profiles
-    #     phil_min = np.min(phil, axis=0)
-    #     phil_max = np.max(phil, axis=0)
-    #     phi_bounds = (phil_min[0]-0.2, phil_max[0]+0.2, phil_min[1]-0.2, phil_max[1]+0.2)
-    #     omega = self.RIS_directional(phi0, phi_bounds, method="pencil") # size=(T2, NR)
-
-    #     # Simulate signal model
-    #     f = self.construct_precoder(theta0, thetal[0], T=self.T2) # size=(T2, NU)
-    #     H_RIS, H_nonRIS = self.ChMat(Phi, sU, omega, include_interference=False) # size=(T2, N, NU, NU)
-    #     H = H_RIS + H_nonRIS
-    #     W = self.construct_combiner(theta0) # size=(NU,)
-
-    #     if self.verbose is True:
-    #         self.plot_precoder(f)
-    #         self.plot_RIS(omega, phi0)
-
-    #     y = self.simulate_received_signal(H, f, np.sqrt(self.p_noise)) # size=(T2, N, NU)
-    #     y = np.einsum("ij,tni->tnj", np.conjugate(W), y) # size=(T2, N, NU-1)
-    #     return y, omega, phi_bounds
-
-    # def step2_signal_model(self, Phi, sU, include_interference, ChParsEst_nonRIS, PosEst_nonRIS, ChParsEst_RIS):
-    #     """
-    #     Simulate from the signal model for the second step of the protocol
-    #     using estimates for the RIS and SP cluster positions.
-
-    #     OBS! The method assumes detection of only 1 SP in the first step.
-
-    #     Inputs
-    #     ------
-    #         Phi : ndarray, size=(L, 3)
-    #         sU : ndarray, size=(6,)
-    #         include_interference : bool
-    #         ChParsEst_nonRIS : ndarray, size=(1, 3)
-    #             The channel parameters estimated in the first step of the SPs
-    #             organized as (delay, azimuth, elevation).
-    #         PosEst_nonRIS : ndarray, size=(1, 3)
-    #             The estimated position of SPs in euclidean coordinates.
-    #         ChParsEst_RIS : ndarray, size=(1, 3)
-    #             The channel parameters for the RIS estimated in the first step
-    #             organized as (delay, azimuth, elevation).
-    #     """
-    #     # Compute RIS phase profiles
-    #     ResRegion = self.sensor_resolution_function(PosEst_nonRIS, sU)
-    #     phi_bounds = self.RIS_angle_resolution_region(sU[:3], ResRegion)
-    #     omega = self.RIS_directional(ChParsEst_RIS[0, 1:], phi_bounds) # size=(T2, NR)
-
-    #     # Simulate signal model
-    #     f = self.construct_precoder(ChParsEst_RIS[0, 1:], ChParsEst_nonRIS[0, 1:], T=self.T2) # size=(T2, NU)
-    #     H_RIS, H_nonRIS = self.ChMat(Phi, sU, omega, include_interference=False) # size=(T2, N, NU, NU)
-    #     H = H_RIS + H_nonRIS
-    #     W = self.construct_combiner(ChParsEst_RIS[0, 1:]) # size=(NU,)
-
-    #     if self.verbose is True:
-    #         self.plot_precoder(f)
-    #         self.plot_RIS(omega, self.RIS_angles(Phi, sU[:3])[0])
-
-    #     y = self.simulate_received_signal(H, f, np.sqrt(self.p_noise)) # size=(T2, N, NU)
-    #     y = np.einsum("ij,tni->tnj", np.conjugate(W), y) # size=(T2, N, NU-1)
-    #     return y, omega, phi_bounds
-
     def prior_step_signal_model(self, Phi, sU, rcs=None):
         """
         Inputs:
@@ -278,9 +165,8 @@ class channel(object):
         self.pU, self.oU = np.array(self.sU[:3]), np.array(self.sU[3:])
         self.AntPos_UE = self.AntenPos(self.NU[0], self.NU[1], "UE")
 
-        f = 1/np.sqrt(self.NU_prod) * np.ones((self.T1//2, self.NU_prod))
-        # f = self.construct_precoder(np.array([0.7, 0.8]), T=self.T2//2)
-        # self.construct_precoder(T=self.T1//2)
+        f = self.construct_precoder(np.array([0.7, 0.8]), T=self.T1//2)
+        # f = self.construct_precoder(T=self.T1//2)
         WN = np.eye(self.NU_prod)
 
         if Phi.shape[0] > 0:
@@ -332,10 +218,8 @@ class channel(object):
 
         # f = self.construct_precoder(prior["thetal"], prior["theta0"], T=self.T2//2)
         f = self.construct_precoder(prior["thetal"], T=self.T2//2)
-        # f = np.ones((self.T2//2, self.NU_prod))
-        # f = self.construct_precoder(T=self.T2//2)
         WN = np.eye(self.NU_prod)
-        WR = np.eye(self.NU_prod) # self.construct_precoder(prior["theta0"], T=1)
+        WR = np.eye(self.NU_prod)
         omega = self.RIS_directional(prior["phi0"], prior["phi_bounds"], method="uncertainty_region", T=self.T2//2)
 
         if Phi.shape[0] > 0:

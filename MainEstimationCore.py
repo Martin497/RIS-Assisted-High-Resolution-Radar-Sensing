@@ -21,11 +21,6 @@ from scipy.ndimage import maximum_filter
 from scipy.stats import chi2
 from scipy.optimize import minimize
 
-import sys
-import os
-if os.path.abspath("..")+"/Modules" not in sys.path:
-    sys.path.append(os.path.abspath("..")+"/Modules")
-
 from Beamforming import forward_smoothing, smoothing, BartlettSpectrum, \
 CaponSpectrum, MUSICSpectrum, PseudoSpectrum_plot, find_peaks
 from CompressiveSensing import orthogonal_matching_pursuit
@@ -578,17 +573,17 @@ class MainEstCore(channel):
             C1, C2, C3 = np.meshgrid(delays, az_angles, el_angles, indexing="ij")
             ChPars = np.stack((C1*1e09, C2, C3), axis=-1)
 
-            try:
-                gSearch = np.load("gNSearch.npy")
-            except:
-                gSearch = np.sqrt(self.p_tx)*self.gNTensor(delays, az_angles, el_angles, W, f, NUx, NUy, N, T)
-                np.save("gNSearch.npy", gSearch)
+            gSearch = np.sqrt(self.p_tx)*self.gNTensor(delays, az_angles, el_angles, W, f, NUx, NUy, N, T)
             A = gSearch.reshape((-1, gSearch.shape[-1])).T
             y = Y.flatten()
 
             x_hat, Lambda = orthogonal_matching_pursuit(A, y,
-                                                        stopping_criteria={"eps1": residual_threshold, "eps2": 1e-06, "eps3": 1e-04, "eps4": 1e-02, "sparsity":sparsity},
-                                                        plotting={"delays": delays, "az_angles": az_angles, "el_angles": el_angles})
+                                                        stopping_criteria={"eps1": residual_threshold, "sparsity":sparsity},
+                                                        plotting={"plot": self.verboseEst, "delays": delays, "az_angles": az_angles, "el_angles": el_angles})
+            if savename == "results/spectrum_plots/prior":
+                self.priorP = np.abs(np.einsum("mn,m->n", A.conj(), y, optimize="greedy")).reshape((hpars_grid["K_delayN"], hpars_grid["K_azN"], hpars_grid["K_elN"]))
+                self.priorChPars = ChPars
+
             AlphaEst = x_hat[Lambda]
             ChParsEst = ChPars.reshape((-1, 3))[Lambda]
             L_hat = len(Lambda)
@@ -815,7 +810,7 @@ class MainEstCore(channel):
 
         order_test = "eigenvalue_test"
         resPrior = self.ChannelEstimation_nonRIS(YN, sU, prior, WN, f, LsxN, LsyN, LsfN, order_test, algPrior, beamformer, optimization,
-                                                 confidence_level, residual_thresholdN, sparsity, hpars_grid, savename="results/spectrum_plots/prior")
+                                                 confidence_level, residual_thresholdN, 1, hpars_grid, savename="results/spectrum_plots/prior")
         # ChParsEst, AlphaEst, PosEst, LL = resPrior["ChParsEstN"], resPrior["AlphaEstN"], resPrior["PosEstN"], resPrior["LLN"]
         ChParsEst = resPrior["ChParsEstN"]
 
@@ -830,7 +825,7 @@ class MainEstCore(channel):
             P_abs = np.abs(P)
             max_filter = maximum_filter(P_abs, size=hpars["kernelN"], mode='constant', cval=1e10)
             mask_loc = P_abs >= max_filter
-    
+
             try:
                 ref_level = np.flip(np.sort(P_abs[mask_loc]))[M-1]
             except IndexError:  # handling cases where no peak was detected

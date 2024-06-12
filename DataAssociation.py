@@ -24,8 +24,6 @@ def data_association_cost(phiN, phiR):
         for k in range(m):
             term1 = min(np.abs(phiN[i, 0]-phiR[k, 0]), np.abs(np.abs(phiN[i, 0]-phiR[k, 0])-2*np.pi))**2
             term2 = min(np.abs(phiN[i, 1]-phiR[k, 1]), np.abs(np.abs(phiN[i, 1]-phiR[k, 1])-np.pi))**2
-            # term1 = (np.abs(phiN[n, 0]-phiR[m, 0]) % (2*np.pi))**2
-            # term2 = (np.abs(phiN[n, 1]-phiR[m, 1]) % (np.pi))**2
             cost_matrix[i, k] = term1 + term2
     return cost_matrix
 
@@ -77,11 +75,6 @@ def data_association(cost_matrix, square=False):
             return init_assignments, cost
         assignments = [[a] for a in init_assignments]
         aran = np.arange(m)
-        # init_assignments_sorted = np.sort(init_assignments)
-        # print(init_assignments_sorted)
-        # print(np.searchsorted(init_assignments_sorted,aran))
-        # print(init_assignments_sorted[np.searchsorted(init_assignments_sorted,aran)] !=  aran)
-        # non_assigned = aran[init_assignments_sorted[np.searchsorted(init_assignments_sorted,aran)] !=  aran]
         non_assigned = np.array([a for a in aran if a not in init_assignments])
         filler_assignments = np.argmin(cost_matrix[:, non_assigned], axis=0)
         for idx1, idx2 in zip(non_assigned, filler_assignments):
