@@ -27,7 +27,7 @@ E-Mail: mvv@{math,es}.aau.dk
 - MainSimulationStudy.py `Run simulation study to sensing algorithm performance.`
 
 ### Recreating figures
-- Figure 2 & 4: TheoreticalCoerenceStudy.py
+- Figure 2 & 4: TheoreticalCoherenceStudy.py
 - Figure 3: PlotWorkingPrinciple.py
 - Figure 5: TheoreticalTildeCStudy.py
 - Figure 6 & 7: TheoreticalDetectionStudy.py
