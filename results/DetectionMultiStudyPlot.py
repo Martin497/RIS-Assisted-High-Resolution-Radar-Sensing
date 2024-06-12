@@ -6,6 +6,7 @@ Created on Tue Mar 12 08:22:44 2024
 Email: mvv@es.aau.dk
 
 Make plots for figure 9a and 9b.
+First run DetectionStudyPlot.py to prepare the data.
 """
 
 
