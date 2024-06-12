@@ -15,7 +15,7 @@ E-Mail: mvv@{math,es}.aau.dk
 - ChAnalysis.py
 - PositionEstimation_v2
 - DataAssociation.py
-- MainEstimation.py
+- MainEstimation.py `Main module for the estimation algorithm - Runs the algorithm.`
 - TheoreticalAnalysis.py
 
 ### Configuration file
@@ -34,11 +34,6 @@ E-Mail: mvv@{math,es}.aau.dk
 - Figure 8: results/FisherStudyPlot.py
 - Figure 9a & 9b: results/DetectionMultiStudyPlot.py
 - Figure 9c: results/MainStudyPlot.py
-
-### System visualization
-- PowerRISPosition.py
-- receiveSNR.py
-
 
 ## Software Setup
 
