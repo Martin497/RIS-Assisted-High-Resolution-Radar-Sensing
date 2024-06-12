@@ -7,27 +7,27 @@ E-Mail: mvv@{math,es}.aau.dk
 
 ## Contents
 ### Modules
-- Beamforming.py
-- CompressiveSensing.py
-- SensingMetrics.py
-- system.py
-- MainEstimationCore.py
-- ChAnalysis.py
-- PositionEstimation_v2
-- DataAssociation.py
-- MainEstimation.py `Main module for the estimation algorithm - Runs the algorithm.`
-- TheoreticalAnalysis.py
+- Beamforming.py `Backend implementation of beamforming techniques: Bartlett, Capon, MUSIC.`
+- CompressiveSensing.py `Backend implementation of OMP.`
+- SensingMetrics.py `Implementation of the OSPA metric.`
+- PositionEstimation_v2 `Module to do weighted non-linear least squares.`
+- DataAssociation.py `Module to do data association.`
+- system.py `System and signal model.`
+- MainEstimationCore.py `Skeleton core for the estimation algorithm.`
+- ChAnalysis.py `Module to run analysis of the detection probability and Cramér-Rao lower bounds.`
+- TheoreticalAnalysis.py `Module supporting the theoretical analysis of coherence and detection probability.`
+- MainEstimation.py `Main module for the estimation algorithm. Runs the algorithm.`
 
 ### Configuration file
-- system_config.toml
+- system_config.toml `File to specify experiment configurations.`
 
 ### Simulation scripts
-- DetectionSimulationStudy
-- FisherSimulationStudy
-- MainSimulationStudy
+- DetectionSimulationStudy.py `Run simulation study to evaluate the detection probability.`
+- FisherSimulationStudy.py `Run simulation study to evaluate the Cramér-Rao lower bound.`
+- MainSimulationStudy.py `Run simulation study to sensing algorithm performance.`
 
 ### Recreating figures
-- Figure 2 & 4: TheoreticalCoerenceStudy.py
+- Figure 2 & 4: TheoreticalCoherenceStudy.py
 - Figure 3: PlotWorkingPrinciple.py
 - Figure 5: TheoreticalTildeCStudy.py
 - Figure 6 & 7: TheoreticalDetectionStudy.py
@@ -39,10 +39,11 @@ E-Mail: mvv@{math,es}.aau.dk
 
 ### Dependencies
 ```
-
+python 3
+numpy
+scipy
+matplotlib
+toml
+multiprocessing
+tqdm
 ```
-
-### Guide
-- [Install Anaconda](https://docs.anaconda.com/anaconda/install/index.html)
-- Open the Anaconda Prompt and run the following commands:
-  - ``
