@@ -13,7 +13,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pickle
 
-from SensingMetrics import OSPA
+import os
+import sys
+if os.path.abspath("..") not in sys.path:
+    sys.path.append(os.path.abspath(".."))
+
+from SensingMetrics import OSPA, GOSPA
 
 
 if __name__ == "__main__":
@@ -43,11 +48,11 @@ if __name__ == "__main__":
     confidence_level = np.linspace(0, 1, th_spectral)
 
     p = 2
-    c = 3
+    c = 5
 
-    OSPA_joint_tot = np.zeros((len(distances), fading_sims, L+1, noise_sims))
-    OSPAN_tot = np.zeros((len(distances), fading_sims, L+1, noise_sims))
-    OSPAR_tot = np.zeros((len(distances), fading_sims, L+1, noise_sims))
+    GOSPA_joint_tot = np.zeros((len(distances), fading_sims, L+1, noise_sims))
+    GOSPAN_tot = np.zeros((len(distances), fading_sims, L+1, noise_sims))
+    GOSPAR_tot = np.zeros((len(distances), fading_sims, L+1, noise_sims))
     counter = 0
     for savename in savenames:
         with open(f"{folder}/{savename}.pickle", "rb") as file:
@@ -56,9 +61,9 @@ if __name__ == "__main__":
         # =============================================================================
         # Setup
         # =============================================================================
-        OSPAN = np.zeros((rcs_iters, fading_sims, L+1, noise_sims))
-        OSPAR = np.zeros((rcs_iters, fading_sims, L+1, noise_sims))
-        OSPA_joint = np.zeros((rcs_iters, fading_sims, L+1, noise_sims))
+        GOSPAN = np.zeros((rcs_iters, fading_sims, L+1, noise_sims))
+        GOSPAR = np.zeros((rcs_iters, fading_sims, L+1, noise_sims))
+        GOSPA_joint = np.zeros((rcs_iters, fading_sims, L+1, noise_sims))
 
         # =============================================================================
         # Load data and compute KPIs
@@ -71,39 +76,40 @@ if __name__ == "__main__":
                     for idx4 in range(noise_sims):
                         output = res[f"{idx1}"][f"{idx2}"][f"{idx3}"][f"{idx4}"]
                         PosEstN_, PosEstR_, PosEst_joint_ = output["PosEstN"], output["PosEstR"], output["PosEst"]
-                        OSPAN[idx1, idx2, idx3, idx4] = OSPA(PosEstN_, Phi, p, c)
-                        OSPAR[idx1, idx2, idx3, idx4] = OSPA(PosEstR_, Phi, p, c)
-                        OSPA_joint[idx1, idx2, idx3, idx4] = OSPA(PosEst_joint_, Phi, p, c)
+                        GOSPAN[idx1, idx2, idx3, idx4] = GOSPA(PosEstN_, Phi, p, c, 2)
+                        GOSPAR[idx1, idx2, idx3, idx4] = GOSPA(PosEstR_, Phi, p, c, 2)
+                        GOSPA_joint[idx1, idx2, idx3, idx4] = GOSPA(PosEst_joint_, Phi, p, c, 2)
 
         # =============================================================================
-        # OSPA cdf
+        # GOSPA cdf
         # =============================================================================
-        OSPA_x = np.linspace(0, c, 100)
+        GOSPA_x = np.linspace(0, c, 100)
         linestyles = ["solid", "dashed", "dotted"]
-        for l in range(1, L+1):
-            print(np.mean(OSPA_joint[0, :, l, :]), np.mean(OSPAR[0, :, l, :]), np.mean(OSPAN[0, :, l, :]))
-            OSPA_yJ = [np.sum(OSPA_joint[0, :, l, :] <= x)/(fading_sims*noise_sims) for x in OSPA_x]
-            OSPA_yR = [np.sum(OSPAR[0, :, l, :] <= x)/(fading_sims*noise_sims) for x in OSPA_x]
-            OSPA_yN = [np.sum(OSPAN[0, :, l, :] <= x)/(fading_sims*noise_sims) for x in OSPA_x]
-            plt.plot(OSPA_x, OSPA_yJ, color="tab:purple",label="Joint")
-            plt.plot(OSPA_x, OSPA_yR, color="tab:orange",label="RIS")
-            plt.plot(OSPA_x, OSPA_yN, color="tab:blue", label="Non-RIS")
-            plt.legend()
-            plt.xlabel("x")
-            plt.ylabel("Pr(OSPA $\leq$ x)")
-            plt.title(f"Number of targets: {l}")
-            plt.ylim(-0.03, 1.03)
-            plt.show()
+        # for l in range(1, L+1):
+        #     print(np.mean(GOSPA_joint[0, :, l, :]), np.mean(GOSPAR[0, :, l, :]), np.mean(GOSPAN[0, :, l, :]))
+        #     GOSPA_yJ = [np.sum(GOSPA_joint[0, :, l, :] <= x)/(fading_sims*noise_sims) for x in GOSPA_x]
+        #     GOSPA_yR = [np.sum(GOSPAR[0, :, l, :] <= x)/(fading_sims*noise_sims) for x in GOSPA_x]
+        #     GOSPA_yN = [np.sum(GOSPAN[0, :, l, :] <= x)/(fading_sims*noise_sims) for x in GOSPA_x]
+        #     plt.plot(GOSPA_x, GOSPA_yJ, color="tab:purple",label="Joint")
+        #     plt.plot(GOSPA_x, GOSPA_yR, color="tab:orange",label="RIS")
+        #     plt.plot(GOSPA_x, GOSPA_yN, color="tab:blue", label="Non-RIS")
+        #     plt.legend()
+        #     plt.xlabel("x")
+        #     plt.ylabel("Pr(GOSPA $\leq$ x)")
+        #     plt.title(f"Number of targets: {l}")
+        #     plt.ylim(-0.03, 1.03)
+        #     plt.show()
 
-        OSPA_joint_tot[counter] = OSPA_joint[0, :, :, :]
-        OSPAN_tot[counter] = OSPAN[0, :, :, :]
-        OSPAR_tot[counter] = OSPAR[0, :, :, :]
+        GOSPA_joint_tot[counter] = GOSPA_joint[0, :, :, :]
+        GOSPAN_tot[counter] = GOSPAN[0, :, :, :]
+        GOSPAR_tot[counter] = GOSPAR[0, :, :, :]
         counter += 1
 
-    plt.plot(distances, np.mean(OSPA_joint_tot[:, :, -1, :], axis=(1,2)), color="tab:purple", label="Joint")
-    plt.plot(distances, np.mean(OSPAR_tot[:, :, -1, :], axis=(1,2)), color="tab:orange", label="RIS")
-    plt.plot(distances, np.mean(OSPAN_tot[:, :, -1, :], axis=(1,2)), color="tab:blue", label="Non-RIS")
+    plt.plot(distances, np.mean(GOSPA_joint_tot[:, :, -1, :], axis=(1,2)), color="tab:purple", label="Joint")
+    plt.plot(distances, np.mean(GOSPAR_tot[:, :, -1, :], axis=(1,2)), color="tab:orange", label="RIS")
+    plt.plot(distances, np.mean(GOSPAN_tot[:, :, -1, :], axis=(1,2)), color="tab:blue", label="Non-RIS")
+    plt.xscale("log")
     plt.legend()
-    plt.ylabel("OSPA")
+    plt.ylabel("GOSPA")
     plt.xlabel("AOA spacing")
     plt.show()
